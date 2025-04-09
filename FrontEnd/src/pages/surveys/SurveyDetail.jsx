@@ -49,7 +49,7 @@ const SurveyDetail = () => {
 
   const handleShare = () => {
     const baseUrl = window.location.origin;
-    const surveyUrl = `${baseUrl}/survey-response/${id}`;
+    const surveyUrl = `${baseUrl}/survey-response/${survey.creator}/${id}`; // Use creator ID in the URL
     setShareUrl(surveyUrl);
     setShowShareModal(true);
   };
@@ -306,4 +306,4 @@ const SurveyDetail = () => {
   );
 };
 
-export default SurveyDetail; 
+export default SurveyDetail;

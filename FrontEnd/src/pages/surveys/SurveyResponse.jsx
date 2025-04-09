@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const SurveyResponse = () => {
-  const { id } = useParams();
+  const { creatorId, id } = useParams(); // Extract creatorId and id from route
   const navigate = useNavigate();
   const [survey, setSurvey] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,7 +14,7 @@ const SurveyResponse = () => {
 
   useEffect(() => {
     fetchSurvey();
-  }, [id]);
+  }, [creatorId, id]);
 
   const fetchSurvey = async () => {
     try {
@@ -28,7 +28,7 @@ const SurveyResponse = () => {
 
       console.log('Fetching survey with ID:', id);
 
-      const response = await axios.get(`http://localhost:8000/api/surveys/${id}/public/`, { headers });
+      const response = await axios.get(`http://localhost:8000/api/surveys/${id}/`, { headers }); // Use only the survey ID
       
       console.log('Raw survey response:', response.data);
 

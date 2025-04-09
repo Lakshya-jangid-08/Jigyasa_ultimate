@@ -61,7 +61,7 @@ class SurveyCreateView(generics.CreateAPIView):
 class SurveyDetailView(RetrieveAPIView):
     queryset = Survey.objects.all()
     serializer_class = SurveySerializer
-    lookup_field = 'id'
+    lookup_field = 'id'  # Ensure the lookup field matches the survey ID
     permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
@@ -77,8 +77,6 @@ class SurveyDetailView(RetrieveAPIView):
             }
             for question in questions
         ]
-        # Log the questions and choices for debugging
-        print("Survey Questions with Choices:", survey_data['questions'])
         return Response(survey_data)
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -168,7 +166,7 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
         survey_id = self.request.query_params.get('survey')
         
         # If survey ID is provided, return all responses for that survey
-        if survey_id:
+        if (survey_id):
             return SurveyResponse.objects.filter(survey_id=survey_id).prefetch_related(
                 'answer_set',
                 'answer_set__selected_choices',
