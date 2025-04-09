@@ -48,6 +48,11 @@ const SurveyResponses = () => {
 
       // Calculate question statistics
       calculateQuestionStats(surveyResponse.data.questions, responsesResponse.data);
+
+      console.log('Survey Questions:', surveyResponse.data.questions);
+      surveyResponse.data.questions.forEach((question) => {
+        console.log(`Choices for Question ${question.id}:`, question.choices);
+      });
     } catch (error) {
       console.error('Error fetching survey responses:', error);
       setError(error.response?.data?.detail || 'Failed to load survey responses');
@@ -72,45 +77,50 @@ const SurveyResponses = () => {
     }
 
     const stats = {};
-    
-    questions.forEach(question => {
+
+    questions.forEach((question) => {
+      console.log(`Processing question ID ${question.id}:`, question);
+
       if (question.question_type === 'text') {
         stats[question.id] = {
           type: 'text',
-          total: responses.filter(r => 
-            r.answers?.some(a => a.question === question.id)
-          ).length
+          total: responses.filter((r) =>
+            r.answers?.some((a) => a.question === question.id && a.text_answer)
+          ).length,
         };
       } else {
         const choiceCounts = {};
-        question.choices?.forEach(choice => {
+        question.choices?.forEach((choice) => {
           choiceCounts[choice.id] = 0;
         });
 
-        responses.forEach(response => {
-          const answer = response.answers?.find(a => a.question === question.id);
-          if (answer) {
-            answer.selected_choices?.forEach(choiceId => {
-              choiceCounts[choiceId] = (choiceCounts[choiceId] || 0) + 1;
+        responses.forEach((response) => {
+          const answer = response.answers?.find((a) => a.question === question.id);
+          if (answer && answer.selected_choices) {
+            answer.selected_choices.forEach((choiceId) => {
+              if (choiceCounts.hasOwnProperty(choiceId)) {
+                choiceCounts[choiceId] = (choiceCounts[choiceId] || 0) + 1;
+              } else {
+                console.warn(`Choice ID ${choiceId} not found in question choices.`);
+              }
             });
           }
         });
 
         stats[question.id] = {
           type: question.question_type,
-          choices: question.choices?.map(choice => ({
+          choices: question.choices?.map((choice) => ({
             id: choice.id,
             text: choice.text,
-            count: choiceCounts[choice.id] || 0
+            count: choiceCounts[choice.id] || 0,
           })) || [],
-          total: responses.filter(r => 
-            r.answers?.some(a => a.question === question.id)
-          ).length
+          total: Object.values(choiceCounts).reduce((sum, count) => sum + count, 0),
         };
+
+        console.log(`Stats for question ID ${question.id}:`, stats[question.id]);
       }
     });
 
-    console.log("Calculated stats:", stats);
     setQuestionStats(stats);
   };
 
@@ -174,108 +184,59 @@ const SurveyResponses = () => {
     const stats = questionStats[question.id];
     if (!stats) return null;
 
+    console.log(`Rendering responses for question ID ${question.id}:`, stats);
+
     if (stats.type === 'text') {
       return (
         <div className="mt-4">
           <h4 className="text-sm font-medium text-gray-900">Text Responses ({stats.total})</h4>
           <div className="mt-2 bg-gray-50 p-4 rounded-md max-h-60 overflow-y-auto">
-            {responses.map(response => {
-              const answer = response.answers.find(a => a.question === question.id);
+            {responses.map((response) => {
+              const answer = response.answers.find((a) => a.question === question.id);
               return answer?.text_answer ? (
                 <div key={response.id} className="mb-2 p-2 bg-white rounded border border-gray-200">
                   <p className="text-sm">{answer.text_answer}</p>
                   <p className="text-xs text-gray-500 mt-1">
-                    {response.respondent?.email || 'Anonymous'} • {formatDate(response.submitted_at)}
+                    {response.respondent || 'Anonymous'} • {formatDate(response.submitted_at)}
                   </p>
                 </div>
               ) : null;
-            }).filter(Boolean)}
+            })}
           </div>
         </div>
       );
     }
 
-    // For choice questions, show charts
+    // For choice questions, display raw data
     return (
       <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-900">Response Summary ({stats.total} responses)</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-          <div className="bg-white p-4 rounded-md border border-gray-200">
-            <h5 className="text-xs font-medium text-gray-500 mb-2">Pie Chart</h5>
-            <div className="h-64">
-              <Pie
-                data={{
-                  labels: stats.choices.map(c => c.text),
-                  datasets: [{
-                    data: stats.choices.map(c => c.count),
-                    backgroundColor: [
-                      '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
-                      '#EC4899', '#14B8A6', '#F97316', '#64748B', '#84CC16'
-                    ],
-                    borderWidth: 1
-                  }]
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      position: 'right'
-                    }
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <div className="bg-white p-4 rounded-md border border-gray-200">
-            <h5 className="text-xs font-medium text-gray-500 mb-2">Bar Chart</h5>
-            <div className="h-64">
-              <Bar
-                data={{
-                  labels: stats.choices.map(c => c.text),
-                  datasets: [{
-                    label: 'Responses',
-                    data: stats.choices.map(c => c.count),
-                    backgroundColor: '#3B82F6',
-                    borderWidth: 1
-                  }]
-                }}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                    y: {
-                      beginAtZero: true,
-                      ticks: {
-                        precision: 0
-                      }
-                    }
-                  }
-                }}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="mt-4">
-          <h5 className="text-sm font-medium text-gray-500 mb-2">Response Breakdown</h5>
-          <ul className="space-y-2">
-            {stats.choices.map(choice => (
-              <li key={choice.id} className="flex items-center">
-                <span className="w-48 text-sm text-gray-900">{choice.text}</span>
-                <div className="flex-1 flex items-center">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-blue-600 h-2.5 rounded-full" 
-                      style={{ width: `${stats.total ? (choice.count / stats.total) * 100 : 0}%` }}
-                    ></div>
-                  </div>
-                  <span className="ml-2 text-xs text-gray-500 w-12">
-                    {choice.count} ({stats.total ? Math.round((choice.count / stats.total) * 100) : 0}%)
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
+        <h4 className="text-sm font-medium text-gray-900">Raw Responses ({stats.total} responses)</h4>
+        <div className="mt-2 bg-gray-50 p-4 rounded-md max-h-60 overflow-y-auto">
+          {responses.map((response) => {
+            const answer = response.answers.find((a) => a.question === question.id);
+            return answer ? (
+              <div key={response.id} className="mb-2 p-2 bg-white rounded border border-gray-200">
+                <p className="text-sm">
+                  {answer.selected_choices?.length > 0
+                    ? answer.selected_choices.map((choiceId) => {
+                        const choice = question.choices?.find((c) => c.id === choiceId);
+                        if (!choice) {
+                          console.warn(`Choice ID ${choiceId} not found in question choices.`, {
+                            questionId: question.id,
+                            questionText: question.text,
+                            choices: question.choices,
+                          });
+                        }
+                        return choice ? choice.text : `Choice ID ${choiceId} (not found in question choices)`;
+                      }).join(', ')
+                    : 'No choices selected'}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {response.respondent || 'Anonymous'} • {formatDate(response.submitted_at)}
+                </p>
+              </div>
+            ) : null;
+          })}
         </div>
       </div>
     );

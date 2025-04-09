@@ -66,9 +66,19 @@ class SurveyDetailView(RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
         survey = self.get_object()
-        questions = Question.objects.filter(survey=survey)
+        questions = Question.objects.filter(survey=survey).prefetch_related('choice_set')
         survey_data = self.get_serializer(survey).data
-        survey_data['questions'] = QuestionSerializer(questions, many=True).data
+        survey_data['questions'] = [
+            {
+                'id': question.id,
+                'text': question.text,
+                'question_type': question.question_type,
+                'choices': [{'id': choice.id, 'text': choice.text} for choice in question.choice_set.all()],
+            }
+            for question in questions
+        ]
+        # Log the questions and choices for debugging
+        print("Survey Questions with Choices:", survey_data['questions'])
         return Response(survey_data)
 
 class OrganizationViewSet(viewsets.ModelViewSet):
@@ -212,6 +222,8 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
                     text_answer=text_answer
                 )
                 if selected_choices:
+                    # Log selected choices for debugging
+                    print(f"Selected Choices for Question {question_id}: {selected_choices}")
                     answer.selected_choices.set(selected_choices)
             
             print("Survey response data:", {
@@ -232,3 +244,28 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
                 {"detail": str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        survey = instance.survey
+
+        # Fetch questions with their choices
+        questions = Question.objects.filter(survey=survey).prefetch_related('choice_set')
+        questions_data = [
+            {
+                'id': question.id,
+                'text': question.text,
+                'question_type': question.question_type,
+                'choices': [{'id': choice.id, 'text': choice.text} for choice in question.choice_set.all()],
+            }
+            for question in questions
+        ]
+
+        # Include questions with choices in the response
+        response_data = {
+            'id': survey.id,
+            'title': survey.title,
+            'description': survey.description,
+            'questions': questions_data,
+        }
+        return Response(response_data)

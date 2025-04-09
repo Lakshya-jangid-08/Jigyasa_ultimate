@@ -69,7 +69,7 @@ class Migration(migrations.Migration):
                 ('text', models.CharField(max_length=200)),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='jigyasa.question')),
+                ('question', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='jigyasa.question', related_name='choice_set')),
             ],
         ),
         migrations.CreateModel(
