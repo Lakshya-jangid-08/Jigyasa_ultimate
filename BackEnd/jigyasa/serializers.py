@@ -35,6 +35,13 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id', 'text', 'question_type', 'choices']
 
+    def to_representation(self, instance):
+        # Ensure choices are included in the serialized output
+        representation = super().to_representation(instance)
+        if not representation.get('choices'):
+            representation['choices'] = ChoiceSerializer(instance.choice_set.all(), many=True).data
+        return representation
+
 class SurveySerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, required=False)
     organization = OrganizationSerializer(read_only=True)

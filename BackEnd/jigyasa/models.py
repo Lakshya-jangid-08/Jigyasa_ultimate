@@ -88,7 +88,7 @@ class Question(models.Model):
         return self.text
 
 class Choice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='choice_set')
     text = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -122,4 +122,4 @@ class Answer(models.Model):
         app_label = 'jigyasa'
 
     def __str__(self):
-        return f"Answer to {self.question.text}" 
+        return f"Answer to {self.question.text}"
