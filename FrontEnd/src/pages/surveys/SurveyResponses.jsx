@@ -132,42 +132,31 @@ const SurveyResponses = () => {
   const exportToCSV = () => {
     if (!survey || !responses.length) return;
 
-    // Create CSV header
-    const headers = ['Response ID', 'Submitted At', 'Respondent'];
-    const questionHeaders = survey.questions.map(q => q.text);
-    const csvHeaders = [...headers, ...questionHeaders].join(',');
-    
-    // Create CSV rows
+    // Create CSV header with only question texts
+    const csvHeaders = survey.questions.map(q => q.text).join(',');
+
+    // Create CSV rows with only answers
     const csvRows = responses.map(response => {
-      const baseData = [
-        response.id,
-        formatDate(response.submitted_at),
-        response.respondent ? response.respondent.email : 'Anonymous'
-      ];
-      
-      // Map answers to questions
-      const answerData = survey.questions.map(question => {
-        const answer = response.answers.find(a => a.question === question.id);
-        if (!answer) return '';
-        
-        if (answer.text_answer) {
-          return `"${answer.text_answer.replace(/"/g, '""')}"`;
-        } else if (answer.selected_choices && answer.selected_choices.length) {
-          const choiceTexts = answer.selected_choices.map(choiceId => {
-            const choice = question.choices.find(c => c.id === choiceId);
-            return choice ? choice.text : '';
-          }).filter(Boolean);
-          return `"${choiceTexts.join('; ')}"`;
-        }
-        return '';
-      });
-      
-      return [...baseData, ...answerData].join(',');
+        return survey.questions.map(question => {
+            const answer = response.answers.find(a => a.question === question.id);
+            if (!answer) return ''; // No answer provided
+
+            if (answer.text_answer) {
+                return `"${answer.text_answer.replace(/"/g, '""')}"`; // Escape double quotes
+            } else if (answer.selected_choices && answer.selected_choices.length) {
+                const choiceTexts = answer.selected_choices.map(choiceId => {
+                    const choice = question.choices.find(c => c.id === choiceId);
+                    return choice ? choice.text : '';
+                }).filter(Boolean);
+                return `"${choiceTexts.join('; ')}"`; // Join multiple choices with a semicolon
+            }
+            return ''; // No valid answer
+        }).join(',');
     });
-    
+
     // Combine header and rows
     const csvContent = [csvHeaders, ...csvRows].join('\n');
-    
+
     // Create and download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -178,7 +167,7 @@ const SurveyResponses = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  };
+};
 
   const renderQuestionSummary = (question) => {
     const stats = questionStats[question.id];
