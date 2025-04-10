@@ -1,0 +1,93 @@
+# Instructions to Run the Project
+
+## Prerequisites
+1. Install Python (version 3.8 or higher).
+2. Install Node.js (version 16 or higher) and npm.
+
+---
+
+## Backend Setup
+1. Navigate to the backend directory:
+   ```
+   cd BackEnd
+
+   ```
+
+2. Create a virtual environment:
+   ```
+   python -m venv venv
+   
+   ```
+
+3. Activate the virtual environment:
+   - On Windows:
+     ```
+     venv\Scripts\activate
+
+     ```
+   - On macOS/Linux:
+     ```
+     source venv/bin/activate
+     
+     ```
+
+4. Install the required dependencies:
+   ```
+   pip install -r requirements.txt
+  
+   ```
+
+5. Apply database migrations:
+   ```
+   python manage.py migrate
+   
+   ```
+
+6. Run the development server:
+   ```
+   python manage.py runserver
+   
+   ```
+
+7. The backend will be available at:
+   ```
+   http://127.0.0.1:8000
+   
+   ```
+
+---
+
+## Frontend Setup
+1. Navigate to the frontend directory:
+   ```
+   cd c:\Users\rajja\OneDrive\JIGYASA2.0\FrontEnd
+   
+   ```
+
+2. Install the required dependencies:
+   ```
+   npm install
+   
+   ```
+
+3. Start the development server:
+   ```
+   npm run dev
+   
+   ```
+
+4. The frontend will be available at:
+   ```
+   http://localhost:5173
+   
+   ```
+
+---
+
+## Notes
+- Ensure the backend is running before accessing the frontend.
+- Update the backend API URL in the frontend configuration if necessary.
+- For production deployment, use tools like Gunicorn for the backend and build the frontend using:
+  ```
+  npm run build
+  ```
