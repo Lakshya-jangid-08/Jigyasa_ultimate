@@ -99,8 +99,33 @@ const SurveyResponse = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
+    setError(null);
 
     try {
+      // Validate required questions
+      const missingRequiredQuestions = survey.questions.filter(question => {
+        if (!question.required) return false;
+        
+        const answer = answers[question.id];
+        if (!answer) return true;
+        
+        if (question.question_type === 'text') {
+          return !answer.trim();
+        } else if (question.question_type === 'multiple_choice') {
+          return !answer.choices || answer.choices.length === 0;
+        } else if (question.question_type === 'single_choice') {
+          return !answer.choice;
+        }
+        
+        return false;
+      });
+
+      if (missingRequiredQuestions.length > 0) {
+        setError(`Please answer the following required questions: ${missingRequiredQuestions.map(q => q.text).join(', ')}`);
+        setSubmitting(false);
+        return;
+      }
+
       const token = localStorage.getItem('access_token');
       const headers = token ? {
         'Authorization': `Bearer ${token}`,
@@ -189,6 +214,9 @@ const SurveyResponse = () => {
                 <div key={question.id} className="space-y-4">
                   <label className="block text-lg font-medium text-gray-900">
                     {question.text}
+                    {question.required && (
+                      <span className="text-red-500 ml-1">*</span>
+                    )}
                   </label>
 
                   {question.question_type === 'text' && (
@@ -197,6 +225,7 @@ const SurveyResponse = () => {
                       className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       value={answers[question.id] || ''}
                       onChange={(e) => handleAnswerChange(question.id, e.target.value)}
+                      required={question.required}
                     />
                   )}
 

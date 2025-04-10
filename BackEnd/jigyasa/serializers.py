@@ -33,7 +33,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['id', 'text', 'question_type', 'choices']
+        fields = ['id', 'text', 'question_type', 'required', 'choices']
 
     def to_representation(self, instance):
         # Ensure choices are included in the serialized output
