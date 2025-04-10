@@ -132,12 +132,13 @@ const SurveyResponses = () => {
   const exportToCSV = () => {
     if (!survey || !responses.length) return;
 
-    // Create CSV header with only question texts
-    const csvHeaders = survey.questions.map(q => q.text).join(',');
+    // Create CSV header with Response ID and question texts
+    const csvHeaders = ['Response ID', ...survey.questions.map(q => q.text)].join(',');
 
-    // Create CSV rows with only answers
+    // Create CSV rows with Response ID and answers
     const csvRows = responses.map(response => {
-        return survey.questions.map(question => {
+        const responseId = response.id; // Add Response ID
+        const answers = survey.questions.map(question => {
             const answer = response.answers.find(a => a.question === question.id);
             if (!answer) return ''; // No answer provided
 
@@ -152,6 +153,8 @@ const SurveyResponses = () => {
             }
             return ''; // No valid answer
         }).join(',');
+
+        return `${responseId},${answers}`; // Include Response ID in the row
     });
 
     // Combine header and rows
