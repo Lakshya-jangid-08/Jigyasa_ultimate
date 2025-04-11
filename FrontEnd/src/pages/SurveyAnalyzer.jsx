@@ -48,24 +48,45 @@ const SurveyAnalyzer = () => {
     setPlots(updatedPlots);
   };
 
-  const validatePieChart = (plot) => {
-    if (!plot.xAxis) {
-      setError('x_axis is required for pie charts.');
+  const validatePlot = (plot) => {
+    if (!plot.type) {
+      setError('Please select a plot type.');
       return false;
     }
-    const uniqueValues = new Set(columns);
-    if (uniqueValues.size !== columns.length) {
-      setError('x_axis must have unique values for pie charts.');
-      return false;
-    }
-    return true;
-  };
 
-  const validateHeatmap = (plot) => {
+    if (plot.type === 'pie') {
+      if (!plot.xAxis) {
+        setError('x_axis is required for pie charts.');
+        return false;
+      }
+      return true;
+    }
+
+    if (plot.type === 'heatmap') {
+      if (!plot.xAxis || plot.yAxes.length === 0) {
+        setError('x_axis and y_axes are required for heatmaps.');
+        return false;
+      }
+      if (plot.yAxes.length > 2) {
+        setError('Heatmap supports maximum 2 y_axes variables.');
+        return false;
+      }
+      return true;
+    }
+
+    if (plot.type === 'box') {
+      if (plot.yAxes.length === 0) {
+        setError('At least one y_axis is required for box plots.');
+        return false;
+      }
+      return true;
+    }
+
     if (!plot.xAxis || plot.yAxes.length === 0) {
-      setError('x_axis and y_axes are required for heatmaps.');
+      setError('x_axis and y_axes are required for this plot type.');
       return false;
     }
+
     return true;
   };
 
@@ -76,11 +97,7 @@ const SurveyAnalyzer = () => {
       return;
     }
 
-    if (plot.type === 'pie' && !validatePieChart(plot)) {
-      return;
-    }
-
-    if (plot.type === 'heatmap' && !validateHeatmap(plot)) {
+    if (!validatePlot(plot)) {
       return;
     }
 
@@ -99,12 +116,18 @@ const SurveyAnalyzer = () => {
           'Content-Type': 'application/json',
         },
       });
+
+      if (response.data.error) {
+        setError(response.data.error);
+        return;
+      }
+
       const updatedPlots = [...plots];
       updatedPlots[index].data = response.data;
       setPlots(updatedPlots);
     } catch (err) {
       console.error('Error generating plot:', err);
-      setError('Failed to generate plot. Please try again.');
+      setError(err.response?.data?.error || 'Failed to generate plot. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -277,112 +300,104 @@ const SurveyAnalyzer = () => {
 
       {columns.length > 0 && (
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900">4. Add Plots</h2>
+          <h2 className="text-lg font-medium text-gray-900">3. Create Plots</h2>
           <button
             onClick={addPlot}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
           >
             Add Plot
           </button>
+
+          {plots.map((plot, index) => (
+            <div key={index} className="mt-6 p-4 border rounded-lg">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Plot Type</label>
+                  <select
+                    value={plot.type}
+                    onChange={(e) => updatePlot(index, 'type', e.target.value)}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option value="">Select Plot Type</option>
+                    <option value="scatter">Scatter Plot</option>
+                    <option value="bar">Bar Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="area">Area Chart</option>
+                    <option value="pie">Pie Chart</option>
+                    <option value="heatmap">Heatmap</option>
+                    <option value="box">Box Plot</option>
+                  </select>
+                </div>
+
+                {plot.type && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        {plot.type === 'heatmap' ? 'Row Variable (X-Axis)' : 'X-Axis'}
+                      </label>
+                      <select
+                        value={plot.xAxis}
+                        onChange={(e) => updatePlot(index, 'xAxis', e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                      >
+                        <option value="">Select {plot.type === 'heatmap' ? 'Row Variable' : 'X-Axis'}</option>
+                        {columns.map((col) => (
+                          <option key={col} value={col}>{col}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {plot.type !== 'pie' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700">
+                          {plot.type === 'heatmap' ? 'Column Variable(s) (Y-Axis)' : 'Y-Axes (Multiple)'}
+                        </label>
+                        <select
+                          multiple
+                          value={plot.yAxes}
+                          onChange={(e) => updatePlot(index, 'yAxes', Array.from(e.target.selectedOptions, option => option.value))}
+                          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        >
+                          {columns.map((col) => (
+                            <option key={col} value={col}>{col}</option>
+                          ))}
+                        </select>
+                        {plot.type === 'heatmap' && (
+                          <p className="mt-1 text-sm text-gray-500">
+                            Select 1-2 variables for the heatmap. First variable will be used for values.
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => generatePlot(index)}
+                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      Generate Plot
+                    </button>
+
+                    {plot.data && (
+                      <div className="mt-4">
+                        <Plot
+                          data={plot.data.data}
+                          layout={{
+                            ...plot.data.layout,
+                            autosize: true,
+                            margin: { l: 50, r: 50, t: 50, b: 50 }
+                          }}
+                          style={{ width: '100%', height: '500px' }}
+                          config={{ responsive: true }}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
-
-      {plots.map((plot, index) => (
-        <div key={index} className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-medium text-gray-900">Plot {index + 1}</h2>
-
-          <input
-            type="text"
-            placeholder="Plot Title"
-            value={plot.title}
-            onChange={(e) => updatePlot(index, 'title', e.target.value)}
-            className="mt-4 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-          <textarea
-            placeholder="Plot Description"
-            value={plot.description}
-            onChange={(e) => updatePlot(index, 'description', e.target.value)}
-            className="mt-4 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          />
-
-          <label className="block text-sm font-medium text-gray-700 mt-4">Select Plot Type</label>
-          <select
-            value={plot.type}
-            onChange={(e) => updatePlot(index, 'type', e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-            <option value="">Select Plot Type</option>
-            <option value="scatter">Scatter</option>
-            <option value="bar">Bar</option>
-            <option value="line">Line</option>
-            <option value="pie">Pie</option>
-            <option value="histogram">Histogram</option>
-            <option value="heatmap">Heatmap</option>
-            <option value="box">Box</option>
-            <option value="area">Area</option>
-          </select>
-
-          {plot.type && plot.type !== 'pie' && (
-            <>
-              <label className="block text-sm font-medium text-gray-700 mt-4">Select X-Axis</label>
-              <select
-                value={plot.xAxis}
-                onChange={(e) => updatePlot(index, 'xAxis', e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option value="">Select Column</option>
-                {columns.map((col) => (
-                  <option key={col} value={col}>{col}</option>
-                ))}
-              </select>
-
-              <label className="block text-sm font-medium text-gray-700 mt-4">Select Y-Axes (Multiple)</label>
-              <select
-                multiple
-                value={plot.yAxes}
-                onChange={(e) => updatePlot(index, 'yAxes', Array.from(e.target.selectedOptions, option => option.value))}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                {columns.map((col) => (
-                  <option key={col} value={col}>{col}</option>
-                ))}
-              </select>
-            </>
-          )}
-
-          {plot.type === 'pie' && (
-            <>
-              <label className="block text-sm font-medium text-gray-700 mt-4">Select Labels (X-Axis)</label>
-              <select
-                value={plot.xAxis}
-                onChange={(e) => updatePlot(index, 'xAxis', e.target.value)}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              >
-                <option value="">Select Column</option>
-                {columns.map((col) => (
-                  <option key={col} value={col}>{col}</option>
-                ))}
-              </select>
-            </>
-          )}
-
-          <button
-            onClick={() => generatePlot(index)}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Generate Plot
-          </button>
-
-          {plot.data && (
-            <div className="mt-4">
-              <Plot
-                data={plot.data.data}
-                layout={plot.data.layout}
-              />
-            </div>
-          )}
-        </div>
-      ))}
 
       <div className="bg-white shadow rounded-lg p-6">
         <button

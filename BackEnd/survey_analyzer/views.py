@@ -79,9 +79,15 @@ class PlotDataView(APIView):
 
             df = pd.read_csv(file_path)
 
-            if plot_type in ['scatter', 'bar', 'line', 'area', 'heatmap']:
+            # Basic validation for all plot types
+            if plot_type in ['scatter', 'bar', 'line', 'area', 'heatmap', 'box']:
+                if not x_axis or not y_axes:
+                    return Response({"error": "x_axis and y_axes are required for this plot type."}, status=status.HTTP_400_BAD_REQUEST)
                 if x_axis not in df.columns or any(y not in df.columns for y in y_axes):
                     return Response({"error": "Invalid columns selected for x_axis or y_axes."}, status=status.HTTP_400_BAD_REQUEST)
+
+            data = []
+            layout = {}
 
             if plot_type == 'pie':
                 if not x_axis:
@@ -91,46 +97,103 @@ class PlotDataView(APIView):
                 if y_axes and len(y_axes) > 1:
                     return Response({"error": "Pie chart supports only one Y-axis variable."}, status=status.HTTP_400_BAD_REQUEST)
 
-                unique_labels = df[x_axis].dropna().unique()
-                if len(unique_labels) != len(df[x_axis]):
-                    return Response({"error": "x_axis must have unique values for pie charts."}, status=status.HTTP_400_BAD_REQUEST)
-
+                # Calculate value counts for pie chart
+                value_counts = df[x_axis].value_counts()
                 data = [{
-                    "values": df[y_axes[0]].tolist() if y_axes else df[x_axis].value_counts().tolist(),
-                    "labels": unique_labels.tolist(),
+                    "values": value_counts.values.tolist(),
+                    "labels": value_counts.index.tolist(),
                     "type": "pie",
                 }]
-
-                logger.info(f"Pie Chart Data: labels={unique_labels.tolist()}, values={df[y_axes[0]].tolist() if y_axes else df[x_axis].value_counts().tolist()}")
+                layout = {"title": f"Pie Chart of {x_axis}"}
 
             elif plot_type == 'heatmap':
-                if not x_axis or not y_axes:
-                    return Response({"error": "x_axis and y_axes are required for heatmaps."}, status=status.HTTP_400_BAD_REQUEST)
-                if x_axis not in df.columns or any(y not in df.columns for y in y_axes):
-                    return Response({"error": "Invalid columns selected for x_axis or y_axes."}, status=status.HTTP_400_BAD_REQUEST)
+                # Handle null values by filling with 0
+                df_filled = df.fillna(0)
+                
+                # Convert data to numeric if possible
+                for col in [x_axis] + y_axes:
+                    try:
+                        df_filled[col] = pd.to_numeric(df_filled[col])
+                    except:
+                        pass
+                
+                # Create pivot table for heatmap
+                try:
+                    if len(y_axes) == 1:
+                        # Single y-axis: use x_axis as rows and y_axis as values
+                        pivot_data = df_filled.pivot_table(
+                            values=y_axes[0],
+                            index=x_axis,
+                            aggfunc='mean'
+                        )
+                        data = [{
+                            "z": [pivot_data.values.tolist()],
+                            "x": [y_axes[0]],
+                            "y": pivot_data.index.tolist(),
+                            "type": "heatmap",
+                            "colorscale": "Viridis",
+                            "showscale": True
+                        }]
+                        layout = {
+                            "title": f"Heatmap of {y_axes[0]} by {x_axis}",
+                            "xaxis": {"title": y_axes[0]},
+                            "yaxis": {"title": x_axis},
+                            "height": 500,
+                            "width": 800
+                        }
+                    else:
+                        # Two y-axes: use first y_axis as values, second y_axis as columns
+                        pivot_data = df_filled.pivot_table(
+                            values=y_axes[0],  # First y_axis as values
+                            index=x_axis,      # x_axis as rows
+                            columns=y_axes[1], # Second y_axis as columns
+                            aggfunc='mean'
+                        )
+                        
+                        # Fill NaN values with 0
+                        pivot_data = pivot_data.fillna(0)
+                        
+                        data = [{
+                            "z": pivot_data.values.tolist(),
+                            "x": pivot_data.columns.tolist(),
+                            "y": pivot_data.index.tolist(),
+                            "type": "heatmap",
+                            "colorscale": "Viridis",
+                            "showscale": True
+                        }]
+                        layout = {
+                            "title": f"Heatmap of {y_axes[0]} by {x_axis} and {y_axes[1]}",
+                            "xaxis": {"title": y_axes[1]},
+                            "yaxis": {"title": x_axis},
+                            "height": 500,
+                            "width": 800
+                        }
+                    
+                except Exception as e:
+                    logger.error(f"Error creating heatmap: {str(e)}")
+                    return Response({"error": "Could not create heatmap with the selected columns. Please ensure the data is suitable for a heatmap."}, status=status.HTTP_400_BAD_REQUEST)
 
-                if df[x_axis].isnull().any() or df[y_axes].isnull().any().any():
-                    return Response({"error": "x_axis and y_axes must not contain null values for heatmaps."}, status=status.HTTP_400_BAD_REQUEST)
-
-                data = [{
-                    "z": df[y_axes].values.tolist(),
-                    "x": df[x_axis].tolist(),
-                    "y": y_axes,
-                    "type": "heatmap",
-                }]
-
-                logger.info(f"Heatmap Data: x={df[x_axis].tolist()}, y={y_axes}, z={df[y_axes].values.tolist()}")
+            elif plot_type == 'box':
+                for y_axis in y_axes:
+                    data.append({
+                        "y": df[y_axis].tolist(),
+                        "type": "box",
+                        "name": y_axis,
+                    })
+                layout = {
+                    "title": f"Box Plot of {', '.join(y_axes)}",
+                    "xaxis": {"title": "Variables"},
+                    "yaxis": {"title": "Values"}
+                }
 
             else:
-                data = []
-
                 for y_axis in y_axes:
                     if plot_type == 'scatter':
                         data.append({
                             "x": df[x_axis].tolist(),
                             "y": df[y_axis].tolist(),
                             "type": "scatter",
-                            "mode": "lines+markers",
+                            "mode": "markers",
                             "name": y_axis,
                         })
                     elif plot_type == 'bar':
@@ -140,10 +203,12 @@ class PlotDataView(APIView):
                             "type": "bar",
                             "name": y_axis,
                         })
-                    elif plot_type == 'box':
+                    elif plot_type == 'line':
                         data.append({
+                            "x": df[x_axis].tolist(),
                             "y": df[y_axis].tolist(),
-                            "type": "box",
+                            "type": "scatter",
+                            "mode": "lines",
                             "name": y_axis,
                         })
                     elif plot_type == 'area':
@@ -152,19 +217,21 @@ class PlotDataView(APIView):
                             "y": df[y_axis].tolist(),
                             "type": "scatter",
                             "fill": "tozeroy",
+                            "mode": "lines",
                             "name": y_axis,
                         })
 
-            layout = {
-                "title": f"{', '.join(y_axes)} vs {x_axis}" if plot_type != 'pie' else f"Pie Chart of {x_axis}",
-                "xaxis": {"title": x_axis} if plot_type not in ['pie', 'heatmap'] else None,
-                "yaxis": {"title": ', '.join(y_axes)} if plot_type not in ['pie', 'heatmap'] else None,
-            }
+                layout = {
+                    "title": f"{', '.join(y_axes)} vs {x_axis}",
+                    "xaxis": {"title": x_axis},
+                    "yaxis": {"title": "Values"}
+                }
 
             return Response({"data": data, "layout": layout}, status=status.HTTP_200_OK)
         except CSVUpload.DoesNotExist:
             return Response({"error": "CSV file not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
+            logger.error(f"Error generating plot: {str(e)}")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
