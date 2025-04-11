@@ -23,6 +23,6 @@ urlpatterns = [
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/profile/', UserProfileView.as_view(), name='profile'),
     path('create-survey/', SurveyCreateView.as_view(), name='create-survey'),
-    path('survey/<int:id>/', SurveyDetailView.as_view(), name='survey-detail'),
+    path('api/surveys/<int:creator_id>/<int:survey_id>/', SurveyDetailView.as_view(), name='survey-detail'),
     path('', include(router.urls)),
 ]

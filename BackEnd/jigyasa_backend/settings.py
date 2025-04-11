@@ -32,9 +32,12 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
+# CORS settings
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # Vite default port
+    "http://localhost:5173",  # Allow requests from the frontend
 ]
+
+CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_METHODS = [
     "GET",

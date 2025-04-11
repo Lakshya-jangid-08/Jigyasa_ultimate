@@ -60,7 +60,7 @@
 ## Frontend Setup
 1. Navigate to the frontend directory:
    ```
-   cd c:\Users\rajja\OneDrive\JIGYASA2.0\FrontEnd
+   cd FrontEnd
    
    ```
 

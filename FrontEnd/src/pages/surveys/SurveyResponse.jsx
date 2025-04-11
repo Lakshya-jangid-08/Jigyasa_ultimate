@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const SurveyResponse = () => {
-  const { creatorId, id } = useParams(); // Extract creatorId and id from route
+  const { creatorId, surveyId } = useParams(); // Ensure correct parameter names
   const navigate = useNavigate();
   const [survey, setSurvey] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,8 +13,13 @@ const SurveyResponse = () => {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
+    if (!creatorId || !surveyId) {
+      setError('Invalid survey or creator ID');
+      setLoading(false);
+      return;
+    }
     fetchSurvey();
-  }, [creatorId, id]);
+  }, [creatorId, surveyId]);
 
   const fetchSurvey = async () => {
     try {
@@ -26,9 +31,9 @@ const SurveyResponse = () => {
         'Content-Type': 'application/json'
       };
 
-      console.log('Fetching survey with ID:', id);
+      console.log('Fetching survey with ID:', surveyId);
 
-      const response = await axios.get(`http://localhost:8000/api/surveys/${id}/`, { headers }); // Use only the survey ID
+      const response = await axios.get(`http://localhost:8000/api/api/surveys/${creatorId}/${surveyId}/`, { headers }); // Use creatorId and survey ID
       
       console.log('Raw survey response:', response.data);
 
@@ -159,7 +164,7 @@ const SurveyResponse = () => {
       await axios.post(
         'http://localhost:8000/api/survey-responses/',
         {
-          survey: id,
+          survey: surveyId,
           answers: formattedAnswers
         },
         { headers }

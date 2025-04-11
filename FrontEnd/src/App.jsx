@@ -51,7 +51,7 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/survey-response/:creatorId/:id" element={<SurveyResponse />} />
+          <Route path="/survey-response/:creatorId/:surveyId" element={<SurveyResponse />} />
           <Route path="/thank-you" element={<ThankYou />} />
           
           {/* Root route */}

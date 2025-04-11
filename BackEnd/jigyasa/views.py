@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, RegisterSerializer, SurveySerializer, QuestionSerializer, ChoiceSerializer, SurveyResponseSerializer, OrganizationSerializer, UserProfileSerializer
 from .models import Survey, Question, Choice, SurveyResponse, Answer, Organization, UserProfile
 from rest_framework.decorators import api_view, action
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.generics import RetrieveAPIView, get_object_or_404
 from django.shortcuts import render
 # from jigyasa_survey.models import Survey, Question  # Replace with your actual app name
 
@@ -58,26 +58,27 @@ class SurveyCreateView(generics.CreateAPIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-class SurveyDetailView(RetrieveAPIView):
-    queryset = Survey.objects.all()
-    serializer_class = SurveySerializer
-    lookup_field = 'id'  # Ensure the lookup field matches the survey ID
+class SurveyDetailView(APIView):
     permission_classes = [AllowAny]
 
-    def get(self, request, *args, **kwargs):
-        survey = self.get_object()
-        questions = Question.objects.filter(survey=survey).prefetch_related('choice_set')
-        survey_data = self.get_serializer(survey).data
-        survey_data['questions'] = [
-            {
-                'id': question.id,
-                'text': question.text,
-                'question_type': question.question_type,
-                'choices': [{'id': choice.id, 'text': choice.text} for choice in question.choice_set.all()],
-            }
-            for question in questions
-        ]
-        return Response(survey_data)
+    def get(self, request, creator_id, survey_id, *args, **kwargs):
+        survey = get_object_or_404(Survey, id=survey_id, creator_id=creator_id)
+        questions = survey.question_set.prefetch_related('choice_set')
+        survey_data = {
+            'id': survey.id,
+            'title': survey.title,
+            'description': survey.description,
+            'questions': [
+                {
+                    'id': question.id,
+                    'text': question.text,
+                    'question_type': question.question_type,
+                    'choices': [{'id': choice.id, 'text': choice.text} for choice in question.choice_set.all()],
+                }
+                for question in questions
+            ],
+        }
+        return Response(survey_data, status=status.HTTP_200_OK)
 
 class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
