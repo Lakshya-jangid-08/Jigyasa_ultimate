@@ -21,7 +21,7 @@ const Register = () => {
 
   const fetchOrganizations = async () => {
     try {
-      const response = await axios.get('http://localhost:8000/api/organizations/');
+      const response = await axios.get('https://jigyasa-backend.onrender.com/api/organizations/');
       setOrganizations(response.data);
     } catch (error) {
       console.error('Error fetching organizations:', error);
@@ -47,7 +47,7 @@ const Register = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/register/', {
+      const response = await axios.post('https://jigyasa-backend.onrender.com/api/auth/register/', {
         username: formData.username,
         email: formData.email,
         password: formData.password,

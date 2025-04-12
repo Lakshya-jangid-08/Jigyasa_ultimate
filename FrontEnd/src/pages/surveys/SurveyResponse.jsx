@@ -33,7 +33,7 @@ const SurveyResponse = () => {
 
       console.log('Fetching survey with ID:', surveyId);
 
-      const response = await axios.get(`http://localhost:8000/api/api/surveys/${creatorId}/${surveyId}/`, { headers }); // Use creatorId and survey ID
+      const response = await axios.get(`https://jigyasa-backend.onrender.com/api/api/surveys/${creatorId}/${surveyId}/`, { headers }); // Use creatorId and survey ID
       
       console.log('Raw survey response:', response.data);
 
@@ -162,7 +162,7 @@ const SurveyResponse = () => {
       console.log('Submitting answers:', formattedAnswers);
 
       await axios.post(
-        'http://localhost:8000/api/survey-responses/',
+        'https://jigyasa-backend.onrender.com/api/survey-responses/',
         {
           survey: surveyId,
           answers: formattedAnswers

@@ -8,7 +8,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetchPlotData = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/api/plot-data'); // Replace with actual backend endpoint
+        const response = await axios.get('https://jigyasa-backend.onrender.com/api/plot-data'); // Replace with actual backend endpoint
         setPlotData(response.data);
       } catch (error) {
         console.error('Error fetching plot data:', error);

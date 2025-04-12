@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/login/', {
+      const response = await axios.post('https://jigyasa-backend.onrender.com/api/auth/login/', {
         email,
         password,
       });
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post('http://localhost:8000/api/auth/register/', userData);
+      const response = await axios.post('https://jigyasa-backend.onrender.com/api/auth/register/', userData);
       setError(null);
       return response.data;
     } catch (err) {
@@ -64,7 +64,7 @@ export const AuthProvider = ({ children }) => {
       const refresh = localStorage.getItem('refresh_token');
       if (!refresh) throw new Error('No refresh token');
 
-      const response = await axios.post('http://localhost:8000/api/auth/refresh/', {
+      const response = await axios.post('https://jigyasa-backend.onrender.com/api/auth/refresh/', {
         refresh,
       });
 

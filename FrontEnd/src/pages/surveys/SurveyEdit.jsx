@@ -32,7 +32,7 @@ const SurveyEdit = () => {
 
       console.log('Fetching survey with ID:', id);
 
-      const response = await axios.get(`http://localhost:8000/api/surveys/${id}/`, {
+      const response = await axios.get(`https://jigyasa-backend.onrender.com/api/surveys/${id}/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -106,7 +106,7 @@ const SurveyEdit = () => {
 
       console.log('Formatted survey data:', formattedSurvey);
 
-      const response = await axios.put(`http://localhost:8000/api/surveys/${id}/`, formattedSurvey, {
+      const response = await axios.put(`https://jigyasa-backend.onrender.com/api/surveys/${id}/`, formattedSurvey, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

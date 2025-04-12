@@ -25,7 +25,7 @@ const Dashboard = () => {
         return;
       }
 
-      const response = await axios.get('http://localhost:8000/api/surveys/', {
+      const response = await axios.get('https://jigyasa-backend.onrender.com/api/surveys/', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'

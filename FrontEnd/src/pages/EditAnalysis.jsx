@@ -12,7 +12,7 @@ const EditAnalysis = () => {
   useEffect(() => {
     const fetchAnalysis = async () => {
       try {
-        const response = await axios.get(`http://localhost:8000/survey-analyzer/analyses/${id}/`, {
+        const response = await axios.get(`https://jigyasa-backend.onrender.com/survey-analyzer/analyses/${id}/`, {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           },
@@ -52,7 +52,7 @@ const EditAnalysis = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8000/survey-analyzer/analyses/${id}/`, analysis, {
+      await axios.put(`https://jigyasa-backend.onrender.com/survey-analyzer/analyses/${id}/`, analysis, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
         },

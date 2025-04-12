@@ -39,11 +39,11 @@ const SurveyResponses = () => {
       };
 
       // Fetch survey details
-      const surveyResponse = await axios.get(`http://localhost:8000/api/surveys/${id}/`, { headers });
+      const surveyResponse = await axios.get(`https://jigyasa-backend.onrender.com/api/surveys/${id}/`, { headers });
       setSurvey(surveyResponse.data);
 
       // Fetch survey responses
-      const responsesResponse = await axios.get(`http://localhost:8000/api/survey-responses/?survey=${id}`, { headers });
+      const responsesResponse = await axios.get(`https://jigyasa-backend.onrender.com/api/survey-responses/?survey=${id}`, { headers });
       setResponses(responsesResponse.data);
 
       // Calculate question statistics

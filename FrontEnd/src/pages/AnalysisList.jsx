@@ -10,7 +10,7 @@ const AnalysisList = () => {
   useEffect(() => {
     const fetchAnalyses = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/survey-analyzer/analyses/', {
+        const response = await axios.get('https://jigyasa-backend.onrender.com/survey-analyzer/analyses/', {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           },

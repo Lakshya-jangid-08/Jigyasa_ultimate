@@ -23,7 +23,7 @@ const SurveyCreator = () => {
   const fetchOrganizations = async () => {
     try {
       const token = localStorage.getItem('access_token');
-      const response = await axios.get('http://localhost:8000/api/organizations/', {
+      const response = await axios.get('https://jigyasa-backend.onrender.com/api/organizations/', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -157,7 +157,7 @@ const SurveyCreator = () => {
       console.log('Submitting survey data:', formattedData);
 
       const response = await axios.post(
-        'http://localhost:8000/api/surveys/',
+        'https://jigyasa-backend.onrender.com/api/surveys/',
         formattedData,
         {
           headers: {
