@@ -70,8 +70,8 @@ function App() {
             <Route path="surveys/:id" element={<SurveyDetail />} />
             <Route path="surveys/:id/edit" element={<SurveyEdit />} />
             <Route path="surveys/:id/responses" element={<SurveyResponses />} />
+            <Route path="survey-analyzer" element={<SurveyAnalyzer />} />
           </Route>
-          <Route path="/survey-analyzer" element={<SurveyAnalyzer />} />
           <Route path="/edit-analysis/:id" element={<EditAnalysis />} />
         </Routes>
       </Router>
