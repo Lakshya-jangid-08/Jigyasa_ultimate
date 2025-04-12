@@ -37,20 +37,6 @@ const Layout = () => {
                   <ClipboardList className="h-4 w-4 mr-1" />
                   Surveys
                 </Link>
-                <Link
-                  to="/dashboard/analytics"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-                >
-                  <BarChart3 className="h-4 w-4 mr-1" />
-                  Analytics
-                </Link>
-                <Link
-                  to="/saved-analyses"
-                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
-                >
-                  <BarChart3 className="h-4 w-4 mr-1" />
-                  Saved Analyses
-                </Link>
               </div>
             </div>
             <div className="flex items-center">

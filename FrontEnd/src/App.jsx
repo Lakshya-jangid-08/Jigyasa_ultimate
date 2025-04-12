@@ -10,11 +10,9 @@ import SurveyEdit from './pages/surveys/SurveyEdit';
 import SurveyCreator from './pages/surveys/SurveyCreator';
 import SurveyResponses from './pages/surveys/SurveyResponses';
 import ThankYou from './pages/surveys/ThankYou';
-import Analytics from './pages/Analytics';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import SurveyAnalyzer from './pages/SurveyAnalyzer';
-import AnalysisList from './pages/AnalysisList';
 import EditAnalysis from './pages/EditAnalysis';
 
 // Protected Route component
@@ -72,11 +70,8 @@ function App() {
             <Route path="surveys/:id" element={<SurveyDetail />} />
             <Route path="surveys/:id/edit" element={<SurveyEdit />} />
             <Route path="surveys/:id/responses" element={<SurveyResponses />} />
-            <Route path="analytics" element={<Analytics />} />
           </Route>
           <Route path="/survey-analyzer" element={<SurveyAnalyzer />} />
-          <Route path="/analysis-list" element={<AnalysisList />} />
-          <Route path="/saved-analyses" element={<AnalysisList />} />
           <Route path="/edit-analysis/:id" element={<EditAnalysis />} />
         </Routes>
       </Router>
