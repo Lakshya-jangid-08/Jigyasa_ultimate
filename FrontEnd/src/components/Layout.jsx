@@ -35,7 +35,13 @@ const Layout = () => {
                   className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
                 >
                   <ClipboardList className="h-4 w-4 mr-1" />
-                  Surveys
+                  All Surveys
+                </Link>
+                <Link
+                  to="/dashboard/organization-surveys"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+                >
+                  Organization Surveys
                 </Link>
                 <Link
                   to="/dashboard/survey-analyzer"
