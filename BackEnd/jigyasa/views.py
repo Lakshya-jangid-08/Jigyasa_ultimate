@@ -6,7 +6,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer, RegisterSerializer, SurveySerializer, QuestionSerializer, ChoiceSerializer, SurveyResponseSerializer, OrganizationSerializer, UserProfileSerializer
 from .models import Survey, Question, Choice, SurveyResponse, Answer, Organization, UserProfile
-from rest_framework.decorators import api_view, action
+from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.generics import RetrieveAPIView, get_object_or_404
 from django.shortcuts import render
 # from jigyasa_survey.models import Survey, Question  # Replace with your actual app name
@@ -268,3 +268,15 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
             'questions': questions_data,
         }
         return Response(response_data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def organization_surveys(request):
+    user = request.user
+    if not user.profile.organization:
+        return Response({"detail": "User is not associated with any organization."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    organization = user.profile.organization
+    surveys = Survey.objects.filter(organization=organization).exclude(creator=user)
+    serializer = SurveySerializer(surveys, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)

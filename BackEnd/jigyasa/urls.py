@@ -9,7 +9,8 @@ from .views import (
     SurveyDetailView,
     SurveyViewSet,
     SurveyResponseViewSet,
-    OrganizationViewSet
+    OrganizationViewSet,
+    organization_surveys
 )
 
 router = DefaultRouter()
@@ -24,5 +25,6 @@ urlpatterns = [
     path('auth/profile/', UserProfileView.as_view(), name='profile'),
     path('create-survey/', SurveyCreateView.as_view(), name='create-survey'),
     path('api/surveys/<int:creator_id>/<int:survey_id>/', SurveyDetailView.as_view(), name='survey-detail'),
+    path('api/organization-surveys/', organization_surveys, name='organization-surveys'),
     path('', include(router.urls)),
 ]

@@ -15,6 +15,7 @@ import Register from './pages/auth/Register';
 import SurveyAnalyzer from './pages/SurveyAnalyzer';
 import EditAnalysis from './pages/EditAnalysis';
 import OrganizationSurveys from './pages/surveys/OrganizationSurveys';
+import Notification from './pages/notifications/Notification';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -82,6 +83,7 @@ function App() {
             />
           </Route>
           <Route path="/edit-analysis/:id" element={<EditAnalysis />} />
+          <Route path="/notifications" element={<Notification />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { ClipboardList, Home, BarChart3, LogOut } from 'lucide-react';
+import { ClipboardList, Home, BarChart3, LogOut, Bell } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const Layout = () => {
@@ -52,7 +52,10 @@ const Layout = () => {
                 </Link>
               </div>
             </div>
-            <div className="flex items-center">
+            <div className="flex items-center space-x-4">
+              <Link to="/notifications">
+                <Bell className="h-6 w-6 hover:text-gray-400" />
+              </Link>
               <button
                 onClick={handleLogout}
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-gray-500 hover:text-gray-700"
