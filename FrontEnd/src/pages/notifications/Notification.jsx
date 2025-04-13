@@ -58,7 +58,7 @@ const Notification = () => {
                   <p className="text-sm text-gray-500">{survey.description}</p>
                 </div>
                 <Link
-                  to={`/dashboard/surveys/${survey.id}`}
+                  to={`/survey-response/${survey.creator}/${survey.id}/`}
                   className="text-indigo-600 hover:text-indigo-900"
                 >
                   View
