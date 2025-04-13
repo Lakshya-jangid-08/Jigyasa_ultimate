@@ -22,7 +22,7 @@ const SurveyAnalyzer = () => {
     setError(null);
 
     try {
-      const response = await axios.post('https://jigyasa-backend.onrender.com/survey-analyzer/csv-uploads/', formData, {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/survey-analyzer/csv-uploads/`, formData, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'multipart/form-data',
@@ -105,7 +105,7 @@ const SurveyAnalyzer = () => {
     setError(null);
 
     try {
-      const response = await axios.post('https://jigyasa-backend.onrender.com/survey-analyzer/plot-data/', {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/survey-analyzer/plot-data/`, {
         plot_type: plot.type,
         x_axis: plot.xAxis,
         y_axes: plot.yAxes,
@@ -143,7 +143,7 @@ const SurveyAnalyzer = () => {
     setError(null);
 
     try {
-      const response = await axios.post('https://jigyasa-backend.onrender.com/survey-analyzer/groupby/', {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/survey-analyzer/groupby/`, {
         columns,
         csv_upload_id: csvUploadId,
       }, {
@@ -171,7 +171,7 @@ const SurveyAnalyzer = () => {
     setError(null);
 
     try {
-      await axios.post('https://jigyasa-backend.onrender.com/survey-analyzer/analyses/', {
+      await axios.post(`${import.meta.env.VITE_BASE_URL}/survey-analyzer/analyses/`, {
         title: analysisTitle,
         author_name: authorName,
         description,
@@ -196,7 +196,7 @@ const SurveyAnalyzer = () => {
     setError(null);
 
     try {
-      const response = await axios.post('https://jigyasa-backend.onrender.com/survey-analyzer/publish-analysis/', {
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/survey-analyzer/publish-analysis/`, {
         analysis_id: csvUploadId,
       }, {
         headers: {

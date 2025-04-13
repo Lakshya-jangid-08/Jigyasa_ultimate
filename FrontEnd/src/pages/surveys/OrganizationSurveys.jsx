@@ -19,7 +19,7 @@ const OrganizationSurveys = () => {
           return;
         }
 
-        const response = await axios.get('https://jigyasa-backend.onrender.com/api/surveys/', {
+        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/surveys/`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',

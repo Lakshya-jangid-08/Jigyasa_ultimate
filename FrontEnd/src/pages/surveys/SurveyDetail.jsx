@@ -26,7 +26,7 @@ const SurveyDetail = () => {
         return;
       }
 
-      const response = await axios.get(`https://jigyasa-backend.onrender.com/api/surveys/${id}/`, {
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/surveys/${id}/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -63,7 +63,7 @@ const SurveyDetail = () => {
         return;
       }
 
-      await axios.delete(`https://jigyasa-backend.onrender.com/api/surveys/${id}/`, {
+      await axios.delete(`${import.meta.env.VITE_BASE_URL}/api/surveys/${id}/`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
