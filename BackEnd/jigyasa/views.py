@@ -4,12 +4,12 @@ from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
-from .serializers import UserSerializer, RegisterSerializer, SurveySerializer, QuestionSerializer, ChoiceSerializer, SurveyResponseSerializer, OrganizationSerializer, UserProfileSerializer
-from .models import Survey, Question, Choice, SurveyResponse, Answer, Organization, UserProfile
-from rest_framework.decorators import api_view, action
+from .serializers import UserSerializer, RegisterSerializer, SurveySerializer, QuestionSerializer, ChoiceSerializer, SurveyResponseSerializer, OrganizationSerializer, UserProfileSerializer, NotificationSerializer
+from .models import Survey, Question, Choice, SurveyResponse, Answer, Organization, UserProfile, Notification
+from rest_framework.decorators import api_view, action, permission_classes
 from rest_framework.generics import RetrieveAPIView, get_object_or_404
 from django.shortcuts import render
-# from jigyasa_survey.models import Survey, Question  # Replace with your actual app name
+from django.db.models import Q
 
 User = get_user_model()
 
@@ -54,7 +54,22 @@ class SurveyCreateView(generics.CreateAPIView):
         try:
             # Add creator to the request data
             request.data['creator'] = request.user.id
-            return super().create(request, *args, **kwargs)
+            response = super().create(request, *args, **kwargs)
+
+            # Fetch the creator's organization
+            creator_profile = UserProfile.objects.get(user=request.user)
+            organization = creator_profile.organization
+
+            if organization:
+                # Notify all users in the same organization
+                users_in_org = User.objects.filter(profile__organization=organization).exclude(id=request.user.id)
+                for user in users_in_org:
+                    Notification.objects.create(
+                        user=user,
+                        message=f"A new survey '{request.data.get('title', 'Untitled')}' has been created in your organization."
+                    )
+
+            return response
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -268,3 +283,46 @@ class SurveyResponseViewSet(viewsets.ModelViewSet):
             'questions': questions_data,
         }
         return Response(response_data)
+
+class NotificationListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        notifications = Notification.objects.filter(user=request.user).order_by('-created_at')
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response(serializer.data)
+
+class MarkNotificationAsViewedView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            notification = Notification.objects.get(pk=pk, user=request.user)
+            notification.viewed = True
+            notification.save()
+            return Response({'message': 'Notification marked as viewed.'}, status=status.HTTP_200_OK)
+        except Notification.DoesNotExist:
+            return Response({'error': 'Notification not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+class DeleteNotificationView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            notification = Notification.objects.get(pk=pk, user=request.user)
+            notification.delete()
+            return Response({'message': 'Notification deleted.'}, status=status.HTTP_200_OK)
+        except Notification.DoesNotExist:
+            return Response({'error': 'Notification not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_organization(request, user_id):
+    try:
+        user_profile = UserProfile.objects.get(user__id=user_id)
+        if user_profile.organization:
+            serializer = OrganizationSerializer(user_profile.organization)
+            return Response(serializer.data)
+        return Response({"error": "User does not belong to any organization."}, status=404)
+    except UserProfile.DoesNotExist:
+        return Response({"error": "User profile not found."}, status=404)

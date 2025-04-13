@@ -50,6 +50,18 @@ const Layout = () => {
                   <ClipboardList className="h-4 w-4 mr-1" />
                   Open Analyzer
                 </Link>
+                <Link
+                  to="/dashboard/notifications"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+                >
+                  Notifications
+                </Link>
+                <Link
+                  to="/dashboard/profile"
+                  className="inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-900"
+                >
+                  Profile
+                </Link>
               </div>
             </div>
             <div className="flex items-center">

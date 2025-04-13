@@ -9,7 +9,11 @@ from .views import (
     SurveyDetailView,
     SurveyViewSet,
     SurveyResponseViewSet,
-    OrganizationViewSet
+    OrganizationViewSet,
+    NotificationListView,
+    MarkNotificationAsViewedView,
+    DeleteNotificationView,
+    get_user_organization
 )
 
 router = DefaultRouter()
@@ -24,5 +28,9 @@ urlpatterns = [
     path('auth/profile/', UserProfileView.as_view(), name='profile'),
     path('create-survey/', SurveyCreateView.as_view(), name='create-survey'),
     path('api/surveys/<int:creator_id>/<int:survey_id>/', SurveyDetailView.as_view(), name='survey-detail'),
+    path('notifications/', NotificationListView.as_view(), name='notification-list'),
+    path('notifications/<int:pk>/viewed/', MarkNotificationAsViewedView.as_view(), name='mark-notification-viewed'),
+    path('notifications/<int:pk>/delete/', DeleteNotificationView.as_view(), name='delete-notification'),
     path('', include(router.urls)),
+    path('api/organization/<int:user_id>/', get_user_organization, name='get_user_organization'),
 ]

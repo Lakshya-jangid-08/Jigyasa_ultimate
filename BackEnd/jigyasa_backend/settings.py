@@ -59,6 +59,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'jigyasa',
     'survey_analyzer',
+    'django_extensions',
 ]
 
 

@@ -191,32 +191,44 @@ const SurveyAnalyzer = () => {
     }
   };
 
-  const publishAnalysis = async () => {
-    setLoading(true);
-    setError(null);
+
+  const handlePublishAnalysis = async () => {
+    console.log("Publish Analysis button clicked");
+    const contentElement = document.getElementById('analysis-content');
+    if (!contentElement) {
+        console.error("Analysis content element not found");
+        return;
+    }
+
+    const htmlString = contentElement.outerHTML;
+    console.log("HTML content to be sent:", htmlString);
 
     try {
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/survey-analyzer/publish-analysis/`, {
-        analysis_id: csvUploadId,
-      }, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const link = document.createElement('a');
-      link.href = window.URL.createObjectURL(blob);
-      link.download = `${analysisTitle}.pdf`;
-      link.click();
-    } catch (err) {
-      console.error('Error publishing analysis:', err);
-      setError('Failed to publish analysis. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  };
+        const response = await axios.post(
+            `${import.meta.env.VITE_BASE_URL}/survey-analyzer/publish-analysis/`,
+            { html: htmlString },
+            {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                    'Content-Type': 'application/json',
+                },
+                responseType: 'blob',
+            }
+        );
 
+        console.log("PDF generation response received");
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = 'analysis.pdf';
+        link.click();
+    } catch (err) {
+        console.error("Error during PDF generation:", err);
+        setError('Failed to publish analysis. Please try again.');
+    }
+};
+  
+  
   return (
     <div className="p-6 space-y-6">
       <div className="bg-white shadow rounded-lg p-6">
@@ -407,11 +419,35 @@ const SurveyAnalyzer = () => {
           Save Analysis
         </button>
         <button
-          onClick={publishAnalysis}
+          onClick={handlePublishAnalysis}
           className="mt-4 ml-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Publish Analysis
         </button>
+      </div>
+
+      <div id="analysis-content">
+        {/* Existing content that needs to be published */}
+        <h1>{analysisTitle}</h1>
+        <p>{description}</p>
+        {plots.map((plot, index) => (
+          <div key={index}>
+            <h2>{plot.title}</h2>
+            <p>{plot.description}</p>
+            {plot.data && (
+              <Plot
+                data={plot.data.data}
+                layout={{
+                  ...plot.data.layout,
+                  autosize: true,
+                  margin: { l: 50, r: 50, t: 50, b: 50 },
+                }}
+                style={{ width: '100%', height: '500px' }}
+                config={{ responsive: true }}
+              />
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );

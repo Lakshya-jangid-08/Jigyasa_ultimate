@@ -15,6 +15,9 @@ import Register from './pages/auth/Register';
 import SurveyAnalyzer from './pages/SurveyAnalyzer';
 import EditAnalysis from './pages/EditAnalysis';
 import OrganizationSurveys from './pages/surveys/OrganizationSurveys';
+import Notifications from './pages/Notifications';
+import { NotificationProvider } from './context/NotificationContext';
+import Profile from './pages/Profile';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -45,45 +48,49 @@ const RootRoute = () => {
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/survey-response/:creatorId/:surveyId" element={<SurveyResponse />} />
-          <Route path="/thank-you" element={<ThankYou />} />
-          
-          {/* Root route */}
-          <Route path="/" element={<RootRoute />} />
-          
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="surveys" element={<SurveyList />} />
-            <Route path="surveys/create" element={<SurveyCreator />} />
-            <Route path="surveys/:id" element={<SurveyDetail />} />
-            <Route path="surveys/:id/edit" element={<SurveyEdit />} />
-            <Route path="surveys/:id/responses" element={<SurveyResponses />} />
-            <Route path="survey-analyzer" element={<SurveyAnalyzer />} />
+      <NotificationProvider>
+        <Router>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/survey-response/:creatorId/:surveyId" element={<SurveyResponse />} />
+            <Route path="/thank-you" element={<ThankYou />} />
+            
+            {/* Root route */}
+            <Route path="/" element={<RootRoute />} />
+            
+            {/* Protected routes */}
             <Route
-              path="organization-surveys"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <OrganizationSurveys />
+                  <Layout />
                 </ProtectedRoute>
               }
-            />
-          </Route>
-          <Route path="/edit-analysis/:id" element={<EditAnalysis />} />
-        </Routes>
-      </Router>
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="surveys" element={<SurveyList />} />
+              <Route path="surveys/create" element={<SurveyCreator />} />
+              <Route path="surveys/:id" element={<SurveyDetail />} />
+              <Route path="surveys/:id/edit" element={<SurveyEdit />} />
+              <Route path="surveys/:id/responses" element={<SurveyResponses />} />
+              <Route path="survey-analyzer" element={<SurveyAnalyzer />} />
+              <Route
+                path="organization-surveys"
+                element={
+                  <ProtectedRoute>
+                    <OrganizationSurveys />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="profile" element={<Profile />} />
+            </Route>
+            <Route path="/edit-analysis/:id" element={<EditAnalysis />} />
+          </Routes>
+        </Router>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

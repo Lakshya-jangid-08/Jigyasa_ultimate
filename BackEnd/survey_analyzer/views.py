@@ -6,6 +6,10 @@ from .models import CSVUpload, Analysis
 from .serializers import CSVUploadSerializer, AnalysisSerializer, PlotDataSerializer
 import pandas as pd
 import logging
+from io import BytesIO
+import pdfkit
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -274,7 +278,6 @@ from .models import Analysis
 from .serializers import AnalysisSerializer
 from django.http import JsonResponse, HttpResponse
 from django.core.files.base import ContentFile
-import pdfkit
 
 class AnalysisView(APIView):
     permission_classes = [IsAuthenticated]
@@ -294,31 +297,29 @@ class AnalysisView(APIView):
 class PublishAnalysisView(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, *args, **kwargs):
-        analysis_id = request.data.get('analysis_id')
-        if not analysis_id:
-            return Response({"error": "Analysis ID is required."}, status=status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
+        html_content = request.data.get('html', '')
+
+        if not html_content:
+            logger.error("No HTML content provided for PDF generation.")
+            return Response({'error': 'No HTML content provided'}, status=400)
+
+        logger.info("Received HTML content for PDF generation.")
 
         try:
-            analysis = Analysis.objects.get(id=analysis_id, user=request.user)
-            html_content = f"""
-            <html>
-            <head><title>{analysis.title}</title></head>
-            <body>
-                <h1>{analysis.title}</h1>
-                <p><strong>Author:</strong> {analysis.author_name}</p>
-                <p><strong>Date:</strong> {analysis.date}</p>
-                <p>{analysis.description}</p>
-                <h2>Plots</h2>
-                {''.join([f'<div><h3>{plot.get('title', 'Untitled')}</h3><p>{plot.get('description', '')}</p></div>' for plot in analysis.plots])}
-            </body>
-            </html>
-            """
-            pdf_file = pdfkit.from_string(html_content, False)
-            response = HttpResponse(pdf_file, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{analysis.title}.pdf"'
+            # Configure wkhtmltopdf options
+            options = {
+                'enable-local-file-access': None,  # Allow access to local files
+                'quiet': ''  # Suppress wkhtmltopdf output
+            }
+
+            logger.info("Generating PDF with wkhtmltopdf...")
+            pdf = pdfkit.from_string(html_content, False, options=options)
+
+            logger.info("PDF generation successful.")
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = 'attachment; filename="analysis.pdf"'
             return response
-        except Analysis.DoesNotExist:
-            return Response({"error": "Analysis not found."}, status=status.HTTP_404_NOT_FOUND)
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.exception(f"Exception during PDF generation: {e}")
+            return Response({'error': 'An unexpected error occurred during PDF generation'}, status=500)

@@ -1,11 +1,13 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
-from .models import User, Survey, Question, Choice, Answer, SurveyResponse, Organization, UserProfile
+from .models import User, Survey, Question, Choice, Answer, SurveyResponse, Organization, UserProfile, Notification
 
 User = get_user_model()
 
 class OrganizationSerializer(serializers.ModelSerializer):
+    created_at = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
     class Meta:
         model = Organization
         fields = ['id', 'name', 'created_at', 'updated_at']
@@ -227,3 +229,8 @@ class SurveyResponseSerializer(serializers.ModelSerializer):
             answer.selected_choices.set(selected_choices)
         
         return response
+
+class NotificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notification
+        fields = ['id', 'message', 'viewed', 'created_at']
