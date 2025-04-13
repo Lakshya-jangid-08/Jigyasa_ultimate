@@ -5,42 +5,61 @@ import axios from 'axios';
 
 const OrganizationSurveys = () => {
   const [surveys, setSurveys] = useState([]);
+  const [organizations, setOrganizations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const allowedOrganizations = ['IIITV', 'IITGN', 'GEC', 'NIT Surat', 'SVNIT'];
+  const fetchOrganizations = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/organizations/`);
+      setOrganizations(response.data.map(org => org.name));
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+    }
+  };
+
+  const fetchSurveys = async (orgNames) => {
+    try {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setError('No authentication token found');
+        return;
+      }
+
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/surveys/`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const filteredSurveys = response.data.filter(
+        (survey) => survey.organization && orgNames.includes(survey.organization.name)
+      );
+
+      setSurveys(filteredSurveys);
+    } catch (error) {
+      console.error('Error fetching surveys:', error);
+      setError('Failed to load surveys');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchSurveys = async () => {
-      try {
-        const token = localStorage.getItem('access_token');
-        if (!token) {
-          setError('No authentication token found');
-          return;
-        }
-
-        const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/api/surveys/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        const filteredSurveys = response.data.filter(
-          (survey) => survey.organization && allowedOrganizations.includes(survey.organization.name)
-        );
-
-        setSurveys(filteredSurveys);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching surveys:', error);
-        setError('Failed to load surveys');
-        setLoading(false);
-      }
+    const initializeData = async () => {
+      setLoading(true);
+      await fetchOrganizations();
     };
 
-    fetchSurveys();
+    initializeData();
   }, []);
+
+  useEffect(() => {
+    if (organizations.length > 0) {
+      fetchSurveys(organizations);
+    }
+  }, [organizations]);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
